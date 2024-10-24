@@ -2,18 +2,27 @@ import 'dart:convert';
 import 'package:api_tutorial/user_model.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shimmer/shimmer.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class MyHomePage2 extends StatefulWidget {
+  const MyHomePage2({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage2> createState() => _MyHomePage2State();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePage2State extends State<MyHomePage2> {
   List<UserModel> userDetails = [];
+  late bool _isLoading;
+
+  @override
+  void initState() {
+    super.initState();
+    _isLoading = false;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -22,30 +31,50 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
         centerTitle: true,
       ),
-      body: ListView.builder(
-          itemCount: userDetails.length,
-          itemBuilder: (context, index) {
-            final user = userDetails[index];
-            return ListTile(
-              // title: Text(user.fullName),
-              title: Text(user.dob.date.toString()),
-              leading: Text(user.name.first),
-              // leading: CircleAvatar(
-              //   child: ClipRRect(
-              //       borderRadius: BorderRadius.circular(30),
-              //       child: Image.network(userDetails[index].gender)),
-              // ),
-            );
-          }),
+      body: _isLoading
+          ? ListView.builder(
+              itemCount: userDetails.length,
+              itemBuilder: (context, index) {
+                return Shimmer.fromColors(
+                  baseColor: Colors.grey[300]!,
+                  highlightColor: Colors.grey[100]!,
+                  child: ListTile(
+                    leading: const CircleAvatar(
+                      backgroundColor: Colors.white,
+                      radius: 30,
+                    ),
+                    title: Container(
+                      width: 200,
+                      height: 20,
+                      color: Colors.white,
+                    ),
+                    subtitle: Container(
+                      width: 150,
+                      height: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+              },
+            )
+          : ListView.builder(
+              itemCount: userDetails.length,
+              itemBuilder: (context, index) {
+                final user = userDetails[index];
+                return ListTile(
+                  title: Text(user.fullName),
+                  leading: Text(user.name.first),
+                );
+              },
+            ),
       floatingActionButton: FloatingActionButton(
         shape: const CircleBorder(eccentricity: 0),
         elevation: 40,
         backgroundColor: Colors.teal,
         onPressed: () {
           fetchUsers();
-          // FirebaseAuth firebaseAuth = FirebaseAuth.instance;
         },
-        tooltip: 'Increment',
+        tooltip: 'Fetch Users',
         child: const Icon(
           Icons.add,
           size: 28,
@@ -55,28 +84,23 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> fetchUsers() async {
-    const String url = "https://randomuser.me/api/?results=10";
+    setState(() {
+      _isLoading = true;
+    });
+
+    const String url = "https://randomuser.me/api/?results=4";
     final uri = Uri.parse(url);
     final response = await http.get(uri);
-    final body = response.body; // Parsed as String
-    print(body.runtimeType);
-    final json = jsonDecode(body);
-    print("Json Decoded from String to Json = $json");
-    print("Json variable TYPE = ${json.runtimeType}");
-    final intermediateData = json['results'] as List<dynamic>;
-    print("Converted to List of dynamic $intermediateData");
-    final userDetailsThroughModel = intermediateData.map(
-      (e) {
-        return UserModel.fromMap(e);
-      },
-    ).toList();
+    final json = jsonDecode(response.body);
 
-    print(userDetailsThroughModel);
-    print(json.runtimeType);
-    print(json);
+    final intermediateData = json['results'] as List<dynamic>;
+    final userDetailsThroughModel = intermediateData.map((e) {
+      return UserModel.fromMap(e);
+    }).toList();
+
     setState(() {
+      _isLoading = false;
       userDetails = userDetailsThroughModel;
     });
-    print(userDetails.runtimeType);
   }
 }

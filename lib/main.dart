@@ -1,6 +1,7 @@
 // import 'package:api_tutorial/my_home_page_1.dart';
 import 'package:api_tutorial/Screens/list_tasks.dart';
 import 'package:api_tutorial/Singleton/splash_screen.dart';
+import 'package:api_tutorial/my_home_page_1.dart';
 import 'package:api_tutorial/my_home_page_2.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -18,7 +19,9 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       darkTheme: ThemeData.dark(),
       debugShowCheckedModeBanner: false,
-      home: const SplashScreen(),
+      home: const MyHomePage2(
+        title: "API Call with shimmer effect",
+      ),
     );
   }
 }
